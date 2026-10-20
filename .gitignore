@@ -1,0 +1,14 @@
+# Cachés creadas automáticamente por Python.
+__pycache__/
+*.py[cod]
+
+# Entornos virtuales locales.
+.venv/
+venv/
+
+# Configuración local de editores.
+.vscode/
+.idea/
+
+# Archivos temporales generados al escribir reportes.
+*.csv.tmp
