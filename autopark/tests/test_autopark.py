@@ -7,6 +7,7 @@ from pathlib import Path
 
 from archivos import (
     ErrorArchivoDatos,
+    cargar_historial_liquidaciones,
     cargar_json,
     cargar_tarifas,
     guardar_liquidacion_manual,
@@ -14,6 +15,7 @@ from archivos import (
     validar_estructura_tarifas,
 )
 from calculos import calcular_estacionamiento_recursivo, calcular_liquidacion
+from interfaz import filtrar_registros_historial
 from procesamiento import procesar_lote
 from validaciones import (
     ErrorValidacion,
@@ -188,6 +190,130 @@ class PruebasArchivos(unittest.TestCase):
 
             self.assertEqual(len(filas), 2)
             self.assertEqual(filas[0]["patente"], "AB123CD")
+
+    def test_historial_consolida_manual_y_lote(self):
+        """El historial combina ambos CSV y normaliza sus duraciones."""
+        encabezados = [
+            "fecha_registro",
+            "id",
+            "patente",
+            "tipo_vehiculo",
+            "dias",
+            "minutos_estadia",
+            "lavado",
+            "total",
+        ]
+        with tempfile.TemporaryDirectory() as carpeta:
+            carpeta = Path(carpeta)
+            manual = carpeta / "manual.csv"
+            lote = carpeta / "lote.csv"
+
+            with manual.open("w", encoding="utf-8", newline="") as archivo:
+                escritor = csv.DictWriter(archivo, fieldnames=encabezados)
+                escritor.writeheader()
+                escritor.writerow(
+                    {
+                        "fecha_registro": "2026-10-21T10:00:00",
+                        "patente": "AB123CD",
+                        "tipo_vehiculo": "auto",
+                        "dias": 0,
+                        "minutos_estadia": 60,
+                        "lavado": "No",
+                        "total": 1400,
+                    }
+                )
+
+            with lote.open("w", encoding="utf-8", newline="") as archivo:
+                escritor = csv.DictWriter(archivo, fieldnames=encabezados)
+                escritor.writeheader()
+                escritor.writerow(
+                    {
+                        "fecha_registro": "2026-10-20",
+                        "id": "MOV001",
+                        "patente": "AC234DD",
+                        "tipo_vehiculo": "moto",
+                        "dias": 2,
+                        "minutos_estadia": 0,
+                        "lavado": "Sí",
+                        "total": 18000,
+                    }
+                )
+
+            historial = cargar_historial_liquidaciones(manual, lote)
+
+            self.assertEqual(len(historial), 2)
+            self.assertEqual(historial[0]["duracion_minutos"], 60)
+            self.assertEqual(historial[1]["duracion_minutos"], 2880)
+            self.assertEqual(historial[1]["origen"], "Lote")
+
+    def test_historial_rechaza_csv_sin_columnas_obligatorias(self):
+        """Un reporte manipulado no debe romper la interfaz silenciosamente."""
+        with tempfile.TemporaryDirectory() as carpeta:
+            carpeta = Path(carpeta)
+            defectuoso = carpeta / "defectuoso.csv"
+            defectuoso.write_text("patente,total\nAB123CD,1000\n", encoding="utf-8")
+
+            with self.assertRaises(ErrorArchivoDatos):
+                cargar_historial_liquidaciones(defectuoso, carpeta / "vacio.csv")
+
+    def test_historial_combina_varios_filtros(self):
+        """Patente, vehículo, lavado y origen deben funcionar en conjunto."""
+        registros = [
+            {
+                "patente": "AB123CD",
+                "tipo_vehiculo": "auto",
+                "lavado": "Sí",
+                "origen": "Manual",
+                "fecha": "2026-10-21T10:00:00",
+            },
+            {
+                "patente": "AB999ZZ",
+                "tipo_vehiculo": "moto",
+                "lavado": "No",
+                "origen": "Lote",
+                "fecha": "2026-10-19",
+            },
+        ]
+
+        filtrados = filtrar_registros_historial(
+            registros,
+            patente="ab",
+            tipo_vehiculo="Auto",
+            lavado="Sí",
+            origen="Manual",
+            fecha_desde="2026-10-20",
+            fecha_hasta="2026-10-21",
+        )
+
+        self.assertEqual(len(filtrados), 1)
+        self.assertEqual(filtrados[0]["patente"], "AB123CD")
+
+    def test_historial_filtra_un_rango_de_fechas_inclusivo(self):
+        """Los extremos seleccionados deben formar parte del resultado."""
+        registros = [
+            {
+                "fecha": "2026-10-19",
+                "patente": "AA123BB",
+                "tipo_vehiculo": "auto",
+                "lavado": "No",
+                "origen": "Lote",
+            },
+            {
+                "fecha": "2026-10-21T09:00:00",
+                "patente": "AB123CD",
+                "tipo_vehiculo": "auto",
+                "lavado": "Sí",
+                "origen": "Manual",
+            },
+        ]
+
+        filtrados = filtrar_registros_historial(
+            registros,
+            fecha_desde="2026-10-21",
+            fecha_hasta="2026-10-21",
+        )
+
+        self.assertEqual([registro["patente"] for registro in filtrados], ["AB123CD"])
 
 
 class PruebasProcesamiento(unittest.TestCase):

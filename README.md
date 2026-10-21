@@ -34,6 +34,9 @@ parcial2/
 ```
 
 Los reportes CSV se crean automáticamente en la carpeta `parcial2`.
+Los tres CSV incluidos en el repositorio contienen datos de prueba para poder
+recorrer el dashboard y el historial sin realizar una carga previa. Pueden
+regenerarse desde la aplicación.
 
 ## Ejecución
 
@@ -86,6 +89,25 @@ La opción **Procesar movimientos**:
 7. Muestra procesados, rechazados y total recaudado.
 
 Los reportes del lote se reemplazan en cada ejecución porque representan el contenido actual de `movimientos.json`.
+
+## Historial de liquidaciones
+
+La opción **Ver historial** consolida en una sola tabla las operaciones de
+`liquidacion-manual.csv` y `liquidacion.csv`. Permite:
+
+- Ver todas las cargas manuales y del lote.
+- Buscar por patente, incluso escribiéndola parcialmente.
+- Consultar la cantidad de estadías encontradas.
+- Consultar el total pagado y el promedio de minutos por estadía.
+- Identificar la fecha, el vehículo, la duración, el lavado y el origen de cada fila.
+- Combinar filtros por patente, vehículo, lavado, origen y rango de fechas.
+- Exportar a un nuevo CSV solamente los registros que coinciden con los filtros.
+
+Al exportar, el selector de guardado se abre inicialmente en el Escritorio del
+usuario. La ruta se detecta automáticamente y también contempla escritorios
+sincronizados mediante OneDrive.
+
+Si los reportes todavía no existen, la pantalla muestra un historial vacío sin producir un error.
 
 ## Reglas de cálculo
 

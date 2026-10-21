@@ -1,0 +1,4 @@
+fecha_operacion,numero_fila,id,patente,tipo_vehiculo,hora_entrada,hora_salida,lavado,motivo
+2026-10-19,31,MOV031,BH123JJ,auto,18:00,15:00,False,La hora de salida debe ser posterior a la hora de entrada.
+2026-10-19,32,MOV032,BJ234KK,tractor,10:00,12:00,False,"El tipo debe ser moto, auto o camioneta."
+2026-10-19,33,MOV033,PATENTE99,auto,11:00,13:00,False,La patente debe tener formato ABC123 o AB123CD.

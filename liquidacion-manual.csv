@@ -1,0 +1,2 @@
+fecha_registro,patente,tipo_vehiculo,hora_entrada,hora_salida,dias,minutos_estadia,lavado,importe_base,bonificacion,costo_estacionamiento,costo_lavado,total
+2026-10-21T09:18:48,ABC123,auto,08:00,09:00,0,60,Sí,1400,1400,0,5000,5000

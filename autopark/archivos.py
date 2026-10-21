@@ -249,3 +249,93 @@ def guardar_reporte_csv(ruta_archivo, columnas, filas):
         ) from error
 
     return ruta
+
+
+def _leer_liquidaciones_csv(ruta_archivo, origen):
+    """Lee un CSV de liquidaciones y adapta sus filas al historial común."""
+    ruta = Path(ruta_archivo)
+
+    # Un reporte todavía no generado representa un historial vacío, no un error.
+    if not ruta.exists() or ruta.stat().st_size == 0:
+        return []
+
+    campos_obligatorios = {
+        "patente",
+        "tipo_vehiculo",
+        "dias",
+        "minutos_estadia",
+        "lavado",
+        "total",
+    }
+
+    try:
+        with ruta.open("r", encoding="utf-8", newline="") as archivo:
+            lector = csv.DictReader(archivo)
+            encabezados = set(lector.fieldnames or [])
+            faltantes = campos_obligatorios - encabezados
+
+            if faltantes:
+                lista = ", ".join(sorted(faltantes))
+                raise ErrorArchivoDatos(
+                    f"{ruta.name} no contiene las columnas requeridas: {lista}."
+                )
+
+            registros = []
+            for numero_fila, fila in enumerate(lector, start=1):
+                try:
+                    dias = int(fila["dias"])
+                    minutos = int(fila["minutos_estadia"])
+                    total = float(fila["total"])
+                except (TypeError, ValueError) as error:
+                    raise ErrorArchivoDatos(
+                        f"{ruta.name} contiene números inválidos en la fila {numero_fila + 1}."
+                    ) from error
+
+                # Para días completos convertimos la duración a minutos para
+                # poder calcular un promedio comparable entre estadías.
+                duracion_minutos = minutos if dias == 0 else dias * 1440
+
+                registros.append(
+                    {
+                        "fecha": fila.get("fecha_registro")
+                        or fila.get("fecha_operacion")
+                        or "",
+                        "id": fila.get("id") or f"MANUAL-{numero_fila:04d}",
+                        "patente": fila["patente"],
+                        "tipo_vehiculo": fila["tipo_vehiculo"],
+                        "dias": dias,
+                        "minutos_estadia": minutos,
+                        "duracion_minutos": duracion_minutos,
+                        "lavado": fila["lavado"],
+                        "total": total,
+                        "origen": origen,
+                    }
+                )
+
+            return registros
+
+    except UnicodeDecodeError as error:
+        raise ErrorArchivoDatos(f"{ruta.name} no está guardado en UTF-8.") from error
+    except csv.Error as error:
+        raise ErrorArchivoDatos(f"{ruta.name} contiene un CSV inválido: {error}.") from error
+    except PermissionError as error:
+        raise ErrorArchivoDatos(f"No se pudo leer {ruta.name}.") from error
+    except OSError as error:
+        raise ErrorArchivoDatos(f"No se pudo leer {ruta.name}: {error}.") from error
+
+
+def cargar_historial_liquidaciones(
+    ruta_manual=RUTA_LIQUIDACION_MANUAL,
+    ruta_lote=RUTA_LIQUIDACION_LOTE,
+):
+    """Consolida operaciones manuales y del lote en una sola colección."""
+    manuales = _leer_liquidaciones_csv(
+        ruta_manual,
+        "Manual",
+    )
+    lote = _leer_liquidaciones_csv(
+        ruta_lote,
+        "Lote",
+    )
+
+    return manuales + lote
