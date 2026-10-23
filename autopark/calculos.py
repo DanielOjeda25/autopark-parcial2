@@ -1,6 +1,9 @@
 from validaciones import hora_a_minutos
 
 
+# FUNCIÓN RECURSIVA OBLIGATORIA:
+# se llama a sí misma reduciendo los minutos pendientes en cada llamada,
+# hasta alcanzar el caso base y terminar el cálculo.
 def calcular_estacionamiento_recursivo(
     minutos_restantes,
     tipo_vehiculo,
