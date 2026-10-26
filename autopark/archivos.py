@@ -8,16 +8,18 @@ from datetime import datetime
 from pathlib import Path
 
 
-# Ubicación del archivo actual y de la carpeta que contiene los JSON.
+# Ubicaciones principales del proyecto.
 CARPETA_AUTOPARK = Path(__file__).resolve().parent
-CARPETA_DATOS = CARPETA_AUTOPARK.parent
+CARPETA_PROYECTO = CARPETA_AUTOPARK.parent
+CARPETA_DATOS = CARPETA_PROYECTO / "datos"
+CARPETA_REPORTES = CARPETA_PROYECTO / "reportes"
 
 # No usamos rutas absolutas para que el proyecto sea transportable.
 RUTA_TARIFAS = CARPETA_DATOS / "tarifas.json"
 RUTA_MOVIMIENTOS = CARPETA_DATOS / "movimientos.json"
-RUTA_LIQUIDACION_MANUAL = CARPETA_DATOS / "liquidacion-manual.csv"
-RUTA_LIQUIDACION_LOTE = CARPETA_DATOS / "liquidacion.csv"
-RUTA_RECHAZADOS = CARPETA_DATOS / "rechazados.csv"
+RUTA_LIQUIDACION_MANUAL = CARPETA_REPORTES / "liquidacion-manual.csv"
+RUTA_LIQUIDACION_LOTE = CARPETA_REPORTES / "liquidacion.csv"
+RUTA_RECHAZADOS = CARPETA_REPORTES / "rechazados.csv"
 
 # Evita intentar cargar por accidente un archivo exageradamente grande.
 TAMANIO_MAXIMO_BYTES = 10 * 1024 * 1024
@@ -162,6 +164,9 @@ def guardar_liquidacion_manual(resultado, ruta_archivo=RUTA_LIQUIDACION_MANUAL):
     """Agrega una liquidación al CSV sin eliminar los registros anteriores."""
     ruta = Path(ruta_archivo)
 
+    # Si la carpeta de reportes fue eliminada, la recreamos automáticamente.
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+
     # Estas columnas mantienen siempre el mismo orden dentro del archivo.
     columnas = [
         "fecha_registro",
@@ -221,6 +226,9 @@ def guardar_liquidacion_manual(resultado, ruta_archivo=RUTA_LIQUIDACION_MANUAL):
 def guardar_reporte_csv(ruta_archivo, columnas, filas):
     """Reemplaza un reporte CSV de forma segura y conserva sus encabezados."""
     ruta = Path(ruta_archivo)
+
+    # Garantiza que los reportes puedan generarse también en una copia nueva.
+    ruta.parent.mkdir(parents=True, exist_ok=True)
 
     # Escribimos primero un archivo temporal para no dejar un reporte incompleto
     # si ocurre un problema durante el guardado.

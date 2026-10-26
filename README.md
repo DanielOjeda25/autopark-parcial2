@@ -27,18 +27,37 @@ parcial2/
 │   ├── main.py
 │   ├── procesamiento.py
 │   └── validaciones.py
-├── movimientos.json
-├── tarifas.json
+├── datos/
+│   ├── movimientos.json
+│   └── tarifas.json
+├── reportes/
+│   ├── liquidacion-manual.csv
+│   ├── liquidacion.csv
+│   └── rechazados.csv
+├── documentacion/
+│   ├── ENUNCIADO.pdf
+│   ├── DESAFIOS_VALOR_AGREGADO.pdf
+│   ├── movimientos.pdf
+│   └── tarifas.pdf
 ├── README.md
 └── .gitignore
 ```
 
-Los reportes CSV se crean automáticamente en la carpeta `parcial2`.
+La estructura separa el programa, los datos de entrada, los resultados y la
+documentación para que cada tipo de archivo sea fácil de localizar.
+
+Los reportes CSV se crean automáticamente en la carpeta `reportes`.
 Los tres CSV incluidos en el repositorio contienen datos de prueba para poder
 recorrer el dashboard y el historial sin realizar una carga previa. Pueden
 regenerarse desde la aplicación.
 
 ## Ejecución
+
+En Windows se puede iniciar con doble clic en:
+
+```text
+INICIAR_AUTOPARK.bat
+```
 
 Desde la carpeta `parcial2`:
 
@@ -74,26 +93,26 @@ Si los datos son correctos, muestra:
 - Precio del lavado.
 - Total.
 
-Cada operación se agrega a `liquidacion-manual.csv` sin eliminar registros anteriores.
+Cada operación se agrega a `reportes/liquidacion-manual.csv` sin eliminar registros anteriores.
 
 ## Procesamiento por lote
 
 La opción **Procesar movimientos**:
 
-1. Lee `tarifas.json` y `movimientos.json`.
+1. Lee `datos/tarifas.json` y `datos/movimientos.json`.
 2. Valida cada movimiento individualmente.
 3. Calcula todos los registros correctos.
 4. Continúa aunque encuentre datos inválidos.
-5. Genera `liquidacion.csv` con los movimientos válidos.
-6. Genera `rechazados.csv` con los movimientos descartados y su motivo.
+5. Genera `reportes/liquidacion.csv` con los movimientos válidos.
+6. Genera `reportes/rechazados.csv` con los movimientos descartados y su motivo.
 7. Muestra procesados, rechazados y total recaudado.
 
-Los reportes del lote se reemplazan en cada ejecución porque representan el contenido actual de `movimientos.json`.
+Los reportes del lote se reemplazan en cada ejecución porque representan el contenido actual de `datos/movimientos.json`.
 
 ## Historial de liquidaciones
 
 La opción **Ver historial** consolida en una sola tabla las operaciones de
-`liquidacion-manual.csv` y `liquidacion.csv`. Permite:
+`reportes/liquidacion-manual.csv` y `reportes/liquidacion.csv`. Permite:
 
 - Ver todas las cargas manuales y del lote.
 - Buscar por patente, incluso escribiéndola parcialmente.

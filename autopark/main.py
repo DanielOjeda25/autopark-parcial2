@@ -398,7 +398,7 @@ def main():
 
     tk.Label(
         lateral,
-        text="Los reportes CSV se guardan\nen la carpeta del proyecto.",
+        text="Los reportes CSV se guardan\nen la carpeta reportes.",
         background=color_lateral,
         foreground=color_lateral_secundario,
         font=("Segoe UI", 9),
